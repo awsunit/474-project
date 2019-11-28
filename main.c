@@ -14,10 +14,17 @@
 */
 /**/
 #include <stdlib.h>
-#include <Dispenser.h>
+#include "FreeRTOS.h"
+#include "Dispenser.h"
+#include "task.h"
 int main (int argc, char **argv) {
-  
-  return EXIT_SUCCESS;
+  setup();
+  xTaskCreate(Client_Schedule, (const char *)"Client Schedule", 1024, NULL,
+              tskIDLE_PRIORITY + 3, NULL);
+  xTaskCreate(LCD_Update, (const char *)"Update I/O", 1024, NULL,
+              tskIDLE_PRIORITY + 2, NULL);
+  vTaskStartScheduler();
+  while (1) {}
 }
 /**/
 /*EOF*/
