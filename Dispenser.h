@@ -31,6 +31,12 @@
 #define P5 0x20
 #define P6 0x40
 #define P7 0x80
+
+#define MAX_SCHEDULES 20
+/* up/down -> set time, override -> opens device */
+#define NUM_BUTTONS 3
+/* red */
+#define NUM_LEDS 1
 /**/
 // UART enable UART modules
 // offset: 0x618 | pg. 344
@@ -42,12 +48,15 @@
 #define TUART1_FBRD_R (*((volatile uint32_t *)0x4000D028))
 #define TUART1_DR_R (*((volatile uint32_t *)0x4000D000))
 #define TUART1_FR_R (*((volatile uint32_t *)0x4000D018))
-#define TSYSCTL_RCGCGPIO_R (*((volatile uint32_t *)0x400FE108))
+#define TSYSCTL_RCGC2_R (*((volatile uint32_t *)0x400FE108))
 #define TGPIO_PORTB_AFSEL_R (*((volatile uint32_t *)0x40005420))
 #define TGPIO_PORTB_DEN_R (*((volatile uint32_t *)0x4000551C))
 #define TGPIO_PORTB_PCTL_R (*((volatile uint32_t *)0x4000552C))
+#define TGPIO_PORTB_DIR_R (*((volatile uint32_t *) 0x40005400))
 // clock gating control | pg. 340
-#define SYSCTL_RCGCGPIO_R (*((volatile uint32_t *) 0x400FE608))
+#define TSYSCTL_RCGCGPIO_R (*((volatile uint32_t *) 0x400FE608))
+/* Port A */
+#define TSYSCTL_RCGC2_GPIOA 0x01
 // mode control select register
 // bit clear -> pin used as GPIO and controlled via 
 // GPIO registers!
@@ -68,17 +77,8 @@
 //
 #define TGPIO_PORTA_DATA_R (*((volatile uint32_t *) 0x400043FC))
 /**/
-int MAX_SCHEDULES = 20;
-/* up/down -> set time, override -> opens device */
-int NUM_BUTTONS = 3;
-/* red */
-int NUM_LEDS = 1;
 /* flag to open for client scheduled dispensing */
-int scheduled_open_status = 0;
-/* flag to close 3D device */
-int close_status = 0;
-/* flag to update output */
-int lcd_update_status = 0;
+
 
 /**/
 /*
@@ -157,6 +157,14 @@ void Servo_Init(void);
   Configures Tiva for use with external toggle buttons
 */
 void Button_Init(void);
+/*
+  Helper to make sure button is recieving a true press
+  eventual replacement with iterrupt I'm sure
+*/
+void pop_button(void);
+/*
+*/
+int switch_input(int PIN);
 /**/
 /*
   Checks if down button is being pressed
@@ -178,6 +186,17 @@ int up_button_pressed(void);
            0 otherwise
 */
 int override_button_pressed(void);
+/*
+  Helper method for LCD to print a whole c-style string
+*/
+void StringToChar(char * sentence);
+/**/
+/*
+  Helper function to create mask for PCTL_R
+  args: PIN is a the number to left shift OxF by
+  returns: 0xF << (4 * PIN)
+*/
+int mask_regular_GPIO(int PIN);
 /**/ 
 /*
   called by FreeRTOS when stack overflow occurs
